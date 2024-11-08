@@ -10,14 +10,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class IndexController {
 
-    @GetMapping("/")
-    public String index(String customParam) {
+    private final SecurityContextService securityContextService;
 
-        if (customParam != null) {
-            return "customPage";
-        } else {
-            return "index";
-        }
+    public IndexController(SecurityContextService securityContextService) {
+        this.securityContextService = securityContextService;
+    }
+
+    @GetMapping("/")
+    public String index() {
+        securityContextService.securityContext();
+        return "index";
     }
 
     @GetMapping("/loginPage")
