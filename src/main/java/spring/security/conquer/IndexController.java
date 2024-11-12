@@ -10,21 +10,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class IndexController {
 
-    private final SessionInfoService sessionInfoService;
-
-    public IndexController(SessionInfoService sessionInfoService) {
-        this.sessionInfoService = sessionInfoService;
-    }
-
     @GetMapping("/")
     public Authentication index(Authentication authentication) {
         return authentication;
     }
 
-    @GetMapping("/sessionInfo")
-    public String sessionInfo() {
-        sessionInfoService.sessionInfo();
-        return "sessionInfo";
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
+
+    @GetMapping("/denied")
+    public String denied() {
+        return "denied";
     }
 
     @GetMapping("/loginPage")
