@@ -5,14 +5,17 @@ Accept: application/json
 ### Send POST request with json body
 POST http://localhost:8080/csrf
 Content-Type: application/json
-X-Csrf-Token: BK_OnfOiMuhqtGEQfP2262_ktR65c9xcyX5LrGKw0LGBxLDwMZ75rMqWUI1H11BzGdCC2lmHmHzYEeVxr0gtyVuH44i3p4iV
 
 ### Send POST request with json body
 POST http://localhost:8080/csrf
 Content-Type: application/x-www-form-urlencoded
 
-_csrf = COOzb-BiQWJA74sl1sav1hPOUGVp0L90G_5U4kaYjr7HBbhsPdKEXtlWIwdtjLpGs-ub5yWtfQcIsoZZfcgyh3-vvYfxZoAJ
+_csrf = Tf6U8OJ6hWBR_CWAA7Fc51tpfGGwtomFlgeAscowwlokY4MAKZryk4NL51F8yxzlMpxo1z0NUQOHg-iooDS5hvlS-jlHVeIz
 
 ### Send POST request with json body
 POST http://localhost:8080/ignoreCsrf
 Content-Type: application/json
+
+### GET request with a header
+GET http://localhost:8080/csrfToken
+Accept: application/json
