@@ -21,7 +21,6 @@ class SecurityConfig {
                         .requestMatchers("/csrf").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/csrf"))
         ;
         return http.build();
     }
