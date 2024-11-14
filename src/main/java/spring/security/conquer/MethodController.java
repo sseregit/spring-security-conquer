@@ -1,85 +1,66 @@
 package spring.security.conquer;
 
-import org.springframework.security.access.prepost.PostFilter;
-import org.springframework.security.access.prepost.PreFilter;
-import org.springframework.stereotype.Service;
+import jakarta.annotation.security.DenyAll;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 class MethodController {
 
-    private final DataService dataService;
-
-    public MethodController(DataService dataService) {
-        this.dataService = dataService;
+    @GetMapping("/user")
+    @Secured("ROLE_USER")
+    String user() {
+        return "user";
     }
 
-    @PostMapping("/writeList")
-    public List<Account> writeList(@RequestBody List<Account> data) {
-        return dataService.wirteList(data);
+    @GetMapping("/admin")
+    @RolesAllowed("ADMIN")
+    String admin() {
+        return "admin";
     }
 
-    @PostMapping("/writeMap")
-    public Map<String, Account> writeMap(@RequestBody List<Account> data) {
-        return dataService.wirteMap(data.stream().collect(Collectors.toMap(Account::owner, account -> account)));
+    @GetMapping("/permitAll")
+    @PermitAll
+    String permitAll() {
+        return "permitAll";
     }
 
-    @GetMapping("/readList")
-    List<Account> readList() {
-        return dataService.readList();
+    @GetMapping("/denyAll")
+    @DenyAll
+    String denyAll() {
+        return "denyAll";
     }
 
-    @GetMapping("/readMap")
-    Map<String, Account> readMap() {
-        return dataService.readMap();
+    @GetMapping("/isAdmin")
+    @IsAdmin
+    String isAdmin() {
+        return "isAdmin";
     }
 
-}
-
-@Service
-class DataService {
-
-    @PreFilter("filterObject.owner == authentication.name")
-    List<Account> wirteList(List<Account> data) {
-        return data;
+    @GetMapping("/ownerShip")
+    @OwnerShip
+    Account ownerShip(String name) {
+        return new Account(name, false);
     }
 
-    @PreFilter("filterObject.key == authentication.name")
-    public Map<String, Account> wirteMap(Map<String, Account> data) {
-        return data;
-    }
-
-    @PostFilter("filterObject.owner == authentication.name")
-    public List<Account> readList() {
-        return new ArrayList<>(List.of(
-                new Account("user", false),
-                new Account("admin", false),
-                new Account("db", false)
-        ));
-    }
-
-    @PostFilter("filterObject.value.owner() == authentication.name")
-    public Map<String, Account> readMap() {
-        return new HashMap<>(Map.of(
-                "user", new Account("user", false),
-                "admin", new Account("admin", false),
-                "db", new Account("db", false)
-        ));
+    @GetMapping("/delete")
+    @PreAuthorize("@myAuthorizer.isUser(#root)")
+    String delete() {
+        return "delete";
     }
 
 }
 
-record Account(
-        String owner,
-        boolean isSecure
-) {
+@Component
+class myAuthorizer {
+
+    public boolean isUser(MethodSecurityExpressionOperations root) {
+        return root.hasAuthority("ROLE_USER");
+    }
 }
