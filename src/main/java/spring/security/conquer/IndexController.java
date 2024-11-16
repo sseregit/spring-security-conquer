@@ -1,29 +1,26 @@
 package spring.security.conquer;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class IndexController {
 
+    private final DataService dataService;
+
     @GetMapping("/user")
-    public String user() {
-        return "user";
+    public String user(){
+        return dataService.getUser();
     }
 
-    @GetMapping("/db")
-    public String db() {
-        return "db";
+    @GetMapping("/owner")
+    public Account owner(String name){
+        return dataService.getOwner(name);
     }
-
-    @GetMapping("/admin")
-    public String admin() {
-        return "admin";
+    @GetMapping("/display")
+    public String display(){
+        return dataService.display();
     }
-
-    @GetMapping("/secure")
-    public String secure() {
-        return "secure";
-    }
-
 }
