@@ -2,21 +2,16 @@ package spring.security.conquer.method;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.Advisor;
+import org.springframework.aop.Pointcut;
+import org.springframework.aop.aspectj.AspectJExpressionPointcut;
+import org.springframework.aop.support.ComposablePointcut;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.authorization.AuthorizationManager;
-import org.springframework.security.authorization.method.AuthorizationManagerAfterMethodInterceptor;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor;
-import org.springframework.security.authorization.method.MethodInvocationResult;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.core.Authentication;
-import spring.security.conquer.Account;
-
-import java.util.function.Supplier;
 
 @EnableMethodSecurity(prePostEnabled = false)
 @Configuration
@@ -24,41 +19,33 @@ class MethodSecurityConfig {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    Advisor preAuthorize() {
-        return AuthorizationManagerBeforeMethodInterceptor.preAuthorize(new MyPreAuthorizationManager());
+    Advisor pointcutAdvisor() {
+
+        AspectJExpressionPointcut pattern = new AspectJExpressionPointcut();
+        pattern.setExpression("execution(* spring.security.conquer.DataService.getUser(..))");
+
+        AuthorityAuthorizationManager<MethodInvocation> manager = AuthorityAuthorizationManager.hasRole("USER");
+
+        return new AuthorizationManagerBeforeMethodInterceptor(pattern, manager);
     }
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    Advisor postAuthorize() {
-        return AuthorizationManagerAfterMethodInterceptor.postAuthorize(new MyPostAuthorizationManager());
+    Advisor pointcutAdvisor2() {
+
+        AspectJExpressionPointcut pattern = new AspectJExpressionPointcut();
+        pattern.setExpression("execution(* spring.security.conquer.DataService.getUser(..))");
+
+        AspectJExpressionPointcut pattern2 = new AspectJExpressionPointcut();
+        pattern2.setExpression("execution(* spring.security.conquer.DataService.getOwner(..))");
+
+        ComposablePointcut composablePointcut = new ComposablePointcut((Pointcut) pattern);
+        composablePointcut.union((Pointcut) pattern2);
+
+
+        AuthorityAuthorizationManager<MethodInvocation> manager = AuthorityAuthorizationManager.hasRole("USER");
+
+        return new AuthorizationManagerBeforeMethodInterceptor(composablePointcut, manager);
     }
 
-    static class MyPreAuthorizationManager implements AuthorizationManager<MethodInvocation> {
-
-        @Override
-        public AuthorizationDecision check(Supplier<Authentication> authentication, MethodInvocation object) {
-
-            Authentication auth = authentication.get();
-
-            if (auth instanceof AnonymousAuthenticationToken) return new AuthorizationDecision(false);
-
-            return new AuthorizationDecision(auth.isAuthenticated());
-        }
-    }
-
-    static class MyPostAuthorizationManager implements AuthorizationManager<MethodInvocationResult> {
-
-        @Override
-        public AuthorizationDecision check(Supplier<Authentication> authentication, MethodInvocationResult object) {
-
-            Authentication auth = authentication.get();
-
-            if (auth instanceof AnonymousAuthenticationToken) return new AuthorizationDecision(false);
-
-            Account account = (Account) object.getResult();
-
-            return new AuthorizationDecision(account.owner().equals(auth.getName()));
-        }
-    }
 }
