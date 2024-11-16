@@ -1,6 +1,6 @@
 package spring.security.conquer;
 
-record Account(
+public record Account(
         String owner,
         boolean isSecure
 ) {

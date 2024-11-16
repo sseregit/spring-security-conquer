@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 @Service
 class DataService {
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("")
     String getUser() {
         return "user";
     }
 
-    @PostAuthorize("returnObject.owner == authentication.name")
+    @PostAuthorize("")
     Account getOwner(String name) {
         return new Account(name, false);
     }
