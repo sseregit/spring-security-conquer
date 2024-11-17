@@ -49,4 +49,10 @@ class AuthenticationEvents {
         System.out.println("failures = " + failures.getAuthentication().getName());
     }
 
+    @EventListener
+    public void onFailure(DefaultAuthenticationFailureEvent failures) {
+        System.out.println("AuthenticationEvents.DefaultAuthenticationFailureEvent");
+        System.out.println("failures = " + failures.getException().getMessage());
+    }
+
 }

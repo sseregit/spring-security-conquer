@@ -1,35 +1,30 @@
 package spring.security.conquer;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 @EnableWebSecurity
 @Configuration
 class SecurityConfig {
-
-    private final ApplicationEventPublisher applicationEventPublisher;
-
-    public SecurityConfig(ApplicationEventPublisher applicationEventPublisher) {
-        this.applicationEventPublisher = applicationEventPublisher;
-    }
 
     @Bean
     WebSecurityCustomizer webSecurityCustomizer() {
@@ -39,32 +34,36 @@ class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated())
-                .formLogin(form -> form.successHandler(new AuthenticationSuccessHandler() {
-                    @Override
-                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        applicationEventPublisher.publishEvent(new CustomAuthenticationSuccessEvent(authentication));
-                        response.sendRedirect("/");
-                    }
-                }))
-                .authenticationProvider(customAuthenticationProvider2())
+        http
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/user").hasAuthority("ROLE_USER")
+                        .requestMatchers("/db").hasAuthority("ROLE_DB")
+                        .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                        .anyRequest().permitAll())
+                .formLogin(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-        ;
+                .authenticationProvider(customAuthenticationProvider());
+
         return http.build();
     }
 
     @Bean
-    CustomAuthenticationProvider2 customAuthenticationProvider2() {
-        return new CustomAuthenticationProvider2(authenticationEventPublisher(null));
+    AuthenticationProvider customAuthenticationProvider(){
+        return new CustomAuthenticationProvider(customAuthenticationEventPublisher(null));
+    }
+    @Bean
+    AuthenticationEventPublisher customAuthenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        Map<Class<? extends AuthenticationException>, Class<? extends AbstractAuthenticationFailureEvent>> mapping =
+                Collections.singletonMap(CustomException.class, CustomAuthenticationFailureEvent.class);
+
+        DefaultAuthenticationEventPublisher authenticationEventPublisher = new DefaultAuthenticationEventPublisher(applicationEventPublisher);
+        authenticationEventPublisher.setAdditionalExceptionMappings(mapping); // CustomException 을 던지면 CustomAuthenticationFailureEvent 를 발행하도록 추가 함
+        authenticationEventPublisher.setDefaultAuthenticationFailureEvent(DefaultAuthenticationFailureEvent.class);
+        return authenticationEventPublisher;
     }
 
-    @Bean
-    DefaultAuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-        return new DefaultAuthenticationEventPublisher(applicationEventPublisher);
-    }
 
     @Bean
     InMemoryUserDetailsManager inMemoryUserDetailsManager() {

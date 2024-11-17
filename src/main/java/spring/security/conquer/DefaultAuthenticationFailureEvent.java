@@ -4,9 +4,9 @@ import org.springframework.security.authentication.event.AbstractAuthenticationF
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
-public class CustomAuthenticationFailureEvent extends AbstractAuthenticationFailureEvent {
+public class DefaultAuthenticationFailureEvent extends AbstractAuthenticationFailureEvent {
 
-    public CustomAuthenticationFailureEvent(Authentication authentication, AuthenticationException exception) {
+    public DefaultAuthenticationFailureEvent(Authentication authentication, AuthenticationException exception) {
         super(authentication, exception);
     }
 }
