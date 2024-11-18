@@ -1,22 +1,48 @@
 package spring.security.conquer;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 @RestController
 public class IndexController {
 
-    @GetMapping("/user")
-    public String user() {
-        return "user";
+    AuthenticationTrustResolver authenticationTrustResolver = new AuthenticationTrustResolverImpl();
+
+    @GetMapping("/")
+    String index() {
+        Authentication authentication = SecurityContextHolder.getContextHolderStrategy().getContext().getAuthentication();
+        return authenticationTrustResolver.isAnonymous(authentication) ? "anonymous" : "authenticated";
     }
+
+    @GetMapping("/user")
+    public User user(@AuthenticationPrincipal User user) {
+        return user;
+    }
+
+    @GetMapping("/username")
+    public Set<GrantedAuthority> user(@AuthenticationPrincipal(expression = "authorities") Set<GrantedAuthority> authorities) {
+        return authorities;
+    }
+
+    @GetMapping("/user2")
+    public User user2(@CurrentUser User user) {
+        return user;
+    }
+
+    @GetMapping("/username2")
+    public String user2(@CurrentUsername String username) {
+        return username;
+    }
+
 
     @GetMapping("/db")
     public String db() {
@@ -28,26 +54,4 @@ public class IndexController {
         return "admin";
     }
 
-    @GetMapping("/login")
-    String login(HttpServletRequest request, MemberDto memberDto) throws ServletException {
-        request.login(memberDto.username(), memberDto.passowrd());
-        System.out.println("IndexController.login");
-        return "login";
-    }
-
-    @GetMapping("/users")
-    List<MemberDto> users(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        boolean authenticate = request.authenticate(response);
-
-        if(authenticate) {
-            return List.of(new MemberDto("user", "1111"));
-        }
-        return Collections.emptyList();
-    }
-
-    record MemberDto(
-            String username,
-            String passowrd
-    ) {
-    }
 }
