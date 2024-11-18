@@ -34,8 +34,6 @@ class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
         ;
 
-        http.with(new MyCustomDsl(), dsl -> dsl.setFlag(true));
-
         return http.build();
     }
 
