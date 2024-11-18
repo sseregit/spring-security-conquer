@@ -2,7 +2,7 @@ package spring.security.conquer.user.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import spring.security.conquer.user.domain.entity.Account;
+import spring.security.conquer.domain.entity.Account;
 import spring.security.conquer.user.repository.UserRepository;
 
 @Service
