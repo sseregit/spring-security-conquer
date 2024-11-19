@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @EnableWebSecurity
@@ -15,10 +16,12 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
 
-    public SecurityConfig(AuthenticationProvider authenticationProvider, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
+    public SecurityConfig(AuthenticationProvider authenticationProvider, AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
         this.authenticationProvider = authenticationProvider;
+        this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.authenticationDetailsSource = authenticationDetailsSource;
     }
 
@@ -29,8 +32,11 @@ class SecurityConfig {
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
                         .requestMatchers("/", "/signup").permitAll()
                         .anyRequest().authenticated())
-                .formLogin(form -> form.loginPage("/login").permitAll()
-                        .authenticationDetailsSource(authenticationDetailsSource))
+                .formLogin(form -> form
+                        .loginPage("/login").permitAll()
+                        .authenticationDetailsSource(authenticationDetailsSource)
+                        .successHandler(authenticationSuccessHandler)
+                )
                 .authenticationProvider(authenticationProvider)
         ;
 
