@@ -11,6 +11,11 @@ class HomeController {
         return "/dashboard";
     }
 
+    @GetMapping("/api")
+    String restDashboard() {
+        return "rest/dashboard";
+    }
+
     @GetMapping("/user")
     String user() {
         return "/user";
