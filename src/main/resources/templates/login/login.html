@@ -94,8 +94,8 @@
         <div class="col-md-10 content">
             <div class="login-form">
                 <h2>Login</h2>
-                <div th:if="${param.error}" class="form-group">
-                    <span th:text="${exception}?: '잘못된 아이디나 암호입니다'" class="alert alert-danger"></span>
+                <div th:if="${errorLogRecord.error}" class="form-group">
+                    <span th:text="${errorLogRecord.exception}?: '잘못된 아이디나 암호입니다'" class="alert alert-danger"></span>
                 </div>
                 <form th:action="@{/login}" method="post">
                     <input type="hidden" th:value="secret" th:name="secret_key" >
