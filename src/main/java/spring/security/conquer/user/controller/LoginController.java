@@ -18,8 +18,12 @@ class LoginController {
 
     @GetMapping("/login")
     String login(@ModelAttribute ErrorLogRecord errorLogRecord) {
-        System.out.println("errorLogRecord = " + errorLogRecord);
         return "login/login";
+    }
+
+    @GetMapping("/api/login")
+    String restLogin() {
+        return "rest/login";
     }
 
     @GetMapping("/signup")
