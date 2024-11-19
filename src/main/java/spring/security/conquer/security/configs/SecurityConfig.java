@@ -13,11 +13,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import spring.security.conquer.security.dsl.RestApiDsl;
 import spring.security.conquer.security.entrypoint.RestAccessDeniedHandler;
 import spring.security.conquer.security.entrypoint.RestAuthenticationEntryPoint;
-import spring.security.conquer.security.filter.RestAuthenticationFilter;
 import spring.security.conquer.security.handler.FormAccessDeniedHandler;
 
 @EnableWebSecurity
@@ -59,23 +58,19 @@ class SecurityConfig {
                         .requestMatchers("/manager").hasAuthority("ROLE_MANAGER")
                         .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated())
-//                .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(getRestAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(new RestAuthenticationEntryPoint())
                         .accessDeniedHandler(new RestAccessDeniedHandler()))
+
+                .with(new RestApiDsl<>(), restDsl -> restDsl
+                        .restSuccessHandler(restSuccessHandler)
+                        .restFailureHandler(restFailureHandler)
+                        .loginPage("/api/login")
+                        .loginProcessingUrl("/api/login"))
         ;
 
         return http.build();
-    }
-
-    private RestAuthenticationFilter getRestAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager) {
-        RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter(http);
-        restAuthenticationFilter.setAuthenticationManager(authenticationManager);
-        restAuthenticationFilter.setAuthenticationSuccessHandler(restSuccessHandler);
-        restAuthenticationFilter.setAuthenticationFailureHandler(restFailureHandler);
-        return restAuthenticationFilter;
     }
 
     @Bean
