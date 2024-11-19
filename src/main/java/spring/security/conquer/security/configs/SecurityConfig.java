@@ -55,15 +55,15 @@ class SecurityConfig {
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
                         .anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(getRestAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(getRestAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager)
         ;
 
         return http.build();
     }
 
-    private RestAuthenticationFilter getRestAuthenticationFilter(AuthenticationManager authenticationManager) {
-        RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter();
+    private RestAuthenticationFilter getRestAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager) {
+        RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter(http);
         restAuthenticationFilter.setAuthenticationManager(authenticationManager);
         restAuthenticationFilter.setAuthenticationSuccessHandler(restSuccessHandler);
         restAuthenticationFilter.setAuthenticationFailureHandler(restFailureHandler);
