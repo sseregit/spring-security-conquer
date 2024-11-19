@@ -2,23 +2,21 @@ package spring.security.conquer.security.provider;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import spring.security.conquer.domain.dto.AccountContext;
-import spring.security.conquer.security.details.FormAuthenticationDetails;
-import spring.security.conquer.security.exception.SecretException;
+import spring.security.conquer.security.token.RestAuthenticationToken;
 
-@Component("formAuthenticationProvider")
-public class FormAuthenticationProvider implements AuthenticationProvider {
+@Component("restAuthenticationProvider")
+public class RestAuthenticationProvider implements AuthenticationProvider {
 
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    public FormAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public RestAuthenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -35,17 +33,11 @@ public class FormAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Invalid password");
         }
 
-        String secretKey = ((FormAuthenticationDetails) authentication.getDetails()).getSecretKey();
-
-        if (secretKey == null || !secretKey.equals("secret")) {
-            throw new SecretException("Invalid secret");
-        }
-
-        return new UsernamePasswordAuthenticationToken(accountContext.getAccountDto(), password, accountContext.getAuthorities());
+        return new RestAuthenticationToken(accountContext.getAuthorities(), accountContext.getAccountDto(), password);
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return authentication.isAssignableFrom(UsernamePasswordAuthenticationToken.class);
+        return authentication.isAssignableFrom(RestAuthenticationToken.class);
     }
 }

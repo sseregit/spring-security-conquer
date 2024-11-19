@@ -23,13 +23,15 @@ import spring.security.conquer.security.handler.FormAccessDeniedHandler;
 @Configuration
 class SecurityConfig {
 
-    private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationProvider formAuthenticationProvider;
+    private final AuthenticationProvider restAuthenticationProvider;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final AuthenticationFailureHandler authenticationFailureHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
 
-    public SecurityConfig(AuthenticationProvider authenticationProvider, AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticationFailureHandler authenticationFailureHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
-        this.authenticationProvider = authenticationProvider;
+    public SecurityConfig(AuthenticationProvider formAuthenticationProvider, AuthenticationProvider restAuthenticationProvider, AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticationFailureHandler authenticationFailureHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
+        this.formAuthenticationProvider = formAuthenticationProvider;
+        this.restAuthenticationProvider = restAuthenticationProvider;
         this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.authenticationFailureHandler = authenticationFailureHandler;
         this.authenticationDetailsSource = authenticationDetailsSource;
@@ -40,6 +42,7 @@ class SecurityConfig {
     SecurityFilterChain restSecurityFilterChain(HttpSecurity http) throws Exception {
 
         AuthenticationManagerBuilder managerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        managerBuilder.authenticationProvider(restAuthenticationProvider);
         AuthenticationManager authenticationManager = managerBuilder.build();
 
         http
@@ -77,7 +80,7 @@ class SecurityConfig {
                         .successHandler(authenticationSuccessHandler)
                         .failureHandler(authenticationFailureHandler)
                 )
-                .authenticationProvider(authenticationProvider)
+                .authenticationProvider(formAuthenticationProvider)
                 .exceptionHandling(exception -> exception
                         .accessDeniedHandler(new FormAccessDeniedHandler("/denied")))
         ;
