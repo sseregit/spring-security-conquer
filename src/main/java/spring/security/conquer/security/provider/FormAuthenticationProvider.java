@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import spring.security.conquer.domain.dto.AccountContext;
+import spring.security.conquer.security.details.FormAuthenticationDetails;
+import spring.security.conquer.security.exception.SecretException;
 
 @Component
 public class FormAuthenticationProvider implements AuthenticationProvider {
@@ -31,6 +33,12 @@ public class FormAuthenticationProvider implements AuthenticationProvider {
 
         if (!passwordEncoder.matches(password, accountContext.getPassword())) {
             throw new BadCredentialsException("Invalid password");
+        }
+
+        String secretKey = ((FormAuthenticationDetails) authentication.getDetails()).getSecretKey();
+
+        if (secretKey == null || !secretKey.equals("secret")) {
+            throw new SecretException("Invalid secret");
         }
 
         return new UsernamePasswordAuthenticationToken(accountContext.getAccountDto(), password, accountContext.getAuthorities());
