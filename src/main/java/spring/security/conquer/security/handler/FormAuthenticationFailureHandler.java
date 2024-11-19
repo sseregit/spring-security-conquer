@@ -13,7 +13,7 @@ import spring.security.conquer.security.exception.SecretException;
 
 import java.io.IOException;
 
-@Component
+@Component("formFailureHandler")
 class FormAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     @Override

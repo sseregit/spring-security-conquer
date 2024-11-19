@@ -25,15 +25,19 @@ class SecurityConfig {
 
     private final AuthenticationProvider formAuthenticationProvider;
     private final AuthenticationProvider restAuthenticationProvider;
-    private final AuthenticationSuccessHandler authenticationSuccessHandler;
-    private final AuthenticationFailureHandler authenticationFailureHandler;
+    private final AuthenticationSuccessHandler formSuccessHandler;
+    private final AuthenticationFailureHandler formFailureHandler;
+    private final AuthenticationSuccessHandler restSuccessHandler;
+    private final AuthenticationFailureHandler restFailureHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
 
-    public SecurityConfig(AuthenticationProvider formAuthenticationProvider, AuthenticationProvider restAuthenticationProvider, AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticationFailureHandler authenticationFailureHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
+    public SecurityConfig(AuthenticationProvider formAuthenticationProvider, AuthenticationProvider restAuthenticationProvider, AuthenticationSuccessHandler formSuccessHandler, AuthenticationFailureHandler formFailureHandler, AuthenticationSuccessHandler restSuccessHandler, AuthenticationFailureHandler restFailureHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
         this.formAuthenticationProvider = formAuthenticationProvider;
         this.restAuthenticationProvider = restAuthenticationProvider;
-        this.authenticationSuccessHandler = authenticationSuccessHandler;
-        this.authenticationFailureHandler = authenticationFailureHandler;
+        this.formSuccessHandler = formSuccessHandler;
+        this.formFailureHandler = formFailureHandler;
+        this.restSuccessHandler = restSuccessHandler;
+        this.restFailureHandler = restFailureHandler;
         this.authenticationDetailsSource = authenticationDetailsSource;
     }
 
@@ -58,9 +62,11 @@ class SecurityConfig {
         return http.build();
     }
 
-    RestAuthenticationFilter getRestAuthenticationFilter(AuthenticationManager authenticationManager) {
+    private RestAuthenticationFilter getRestAuthenticationFilter(AuthenticationManager authenticationManager) {
         RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter();
         restAuthenticationFilter.setAuthenticationManager(authenticationManager);
+        restAuthenticationFilter.setAuthenticationSuccessHandler(restSuccessHandler);
+        restAuthenticationFilter.setAuthenticationFailureHandler(restFailureHandler);
         return restAuthenticationFilter;
     }
 
@@ -77,8 +83,8 @@ class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login").permitAll()
                         .authenticationDetailsSource(authenticationDetailsSource)
-                        .successHandler(authenticationSuccessHandler)
-                        .failureHandler(authenticationFailureHandler)
+                        .successHandler(formSuccessHandler)
+                        .failureHandler(formFailureHandler)
                 )
                 .authenticationProvider(formAuthenticationProvider)
                 .exceptionHandling(exception -> exception
