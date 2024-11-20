@@ -1,20 +1,36 @@
 package spring.security.conquer.domain.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Data
-public class Account {
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Getter
+@Setter
+@ToString
+@Builder
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class Account implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String username;
-    private String password;
-    private int age;
-    private String roles;
 
+    @Column
+    private String username;
+
+    @Column
+    private int age;
+
+    @Column
+    private String password;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+    @JoinTable(name = "account_roles", joinColumns = {@JoinColumn(name = "account_id")}, inverseJoinColumns = {
+            @JoinColumn(name = "role_id")})
+    @ToString.Exclude
+    private Set<Role> userRoles = new HashSet<>();
 }
