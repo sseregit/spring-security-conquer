@@ -7,10 +7,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -30,8 +32,9 @@ class SecurityConfig {
     private final AuthenticationSuccessHandler restSuccessHandler;
     private final AuthenticationFailureHandler restFailureHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
+    private final AuthorizationManager<RequestAuthorizationContext> authorizationManager;
 
-    public SecurityConfig(AuthenticationProvider formAuthenticationProvider, AuthenticationProvider restAuthenticationProvider, AuthenticationSuccessHandler formSuccessHandler, AuthenticationFailureHandler formFailureHandler, AuthenticationSuccessHandler restSuccessHandler, AuthenticationFailureHandler restFailureHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
+    public SecurityConfig(AuthenticationProvider formAuthenticationProvider, AuthenticationProvider restAuthenticationProvider, AuthenticationSuccessHandler formSuccessHandler, AuthenticationFailureHandler formFailureHandler, AuthenticationSuccessHandler restSuccessHandler, AuthenticationFailureHandler restFailureHandler, AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource, AuthorizationManager<RequestAuthorizationContext> authorizationManager) {
         this.formAuthenticationProvider = formAuthenticationProvider;
         this.restAuthenticationProvider = restAuthenticationProvider;
         this.formSuccessHandler = formSuccessHandler;
@@ -39,6 +42,7 @@ class SecurityConfig {
         this.restSuccessHandler = restSuccessHandler;
         this.restFailureHandler = restFailureHandler;
         this.authenticationDetailsSource = authenticationDetailsSource;
+        this.authorizationManager = authorizationManager;
     }
 
     @Bean
@@ -77,12 +81,7 @@ class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
-                        .requestMatchers("/", "/signup", "/login*").permitAll()
-                        .requestMatchers("/user").hasAuthority("ROLE_USER")
-                        .requestMatchers("/manager").hasAuthority("ROLE_MANAGER")
-                        .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
-                        .anyRequest().authenticated())
+                        .anyRequest().access(authorizationManager))
                 .formLogin(form -> form
                         .loginPage("/login").permitAll()
                         .authenticationDetailsSource(authenticationDetailsSource)
