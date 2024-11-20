@@ -60,22 +60,19 @@ public class ResourcesController {
     String resourcesRegister(Model model) {
 
         List<Role> roleList = roleService.getRoles();
-        model.addAttribute("roles", roleList);
-
+        model.addAttribute("roleList", roleList);
         List<String> myRoles = new ArrayList<>();
         model.addAttribute("myRoles", myRoles);
-
-        ResourcesDto resourcesDto = new ResourcesDto();
+        ResourcesDto resources = new ResourcesDto();
         Set<Role> roleSet = new HashSet<>();
-
         roleSet.add(new Role());
-        resourcesDto.setRoleSet(roleSet);
-        model.addAttribute("resources", resourcesDto);
+        resources.setRoleSet(roleSet);
+        model.addAttribute("resources", resources);
 
-        return "admin/resourcesdetatils";
+        return "admin/resourcesdetails";
     }
 
-    @GetMapping("resoucres/{id}")
+    @GetMapping("/resources/{id}")
     String resourceDetails(@PathVariable Long id, Model model, ModelMap modelMap) {
 
         List<Role> roleList = roleService.getRoles();
@@ -89,7 +86,7 @@ public class ResourcesController {
         ResourcesDto resourcesDto = modelMapper.map(resources, ResourcesDto.class);
         model.addAttribute("resources", resourcesDto);
 
-        return "admin/resourcedetails";
+        return "admin/resourcesdetails";
     }
 
     @GetMapping("/resources/delete/{id}")

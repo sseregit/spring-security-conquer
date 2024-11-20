@@ -1,6 +1,7 @@
 package spring.security.conquer.security.manager;
 
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -12,7 +13,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcherEntry;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-import spring.security.conquer.security.mapper.MapBasedUrlRoleMapper;
+import spring.security.conquer.admin.repository.ResourcesRepository;
+import spring.security.conquer.security.mapper.PersistentUrlRoleMapper;
 import spring.security.conquer.security.service.DynamicAuthorizationService;
 
 import java.util.List;
@@ -22,17 +24,19 @@ import java.util.stream.Collectors;
 @Component
 public class CustomDynamicAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 
-    private static final AuthorizationDecision DENY = new AuthorizationDecision(false);
+    private static final AuthorizationDecision ACCESS = new AuthorizationDecision(true);
     private final HandlerMappingIntrospector handlerMappingIntrospector;
+    private final ResourcesRepository resourcesRepository;
     List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings;
 
-    public CustomDynamicAuthorizationManager(HandlerMappingIntrospector handlerMappingIntrospector) {
+    public CustomDynamicAuthorizationManager(HandlerMappingIntrospector handlerMappingIntrospector, ResourcesRepository resourcesRepository) {
         this.handlerMappingIntrospector = handlerMappingIntrospector;
+        this.resourcesRepository = resourcesRepository;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void mappings() {
-        DynamicAuthorizationService dynamicAuthorizationService = new DynamicAuthorizationService(new MapBasedUrlRoleMapper());
+        DynamicAuthorizationService dynamicAuthorizationService = new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
 
         mappings = dynamicAuthorizationService.getUrlRoleMappings()
                 .entrySet().stream()
@@ -68,7 +72,7 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
                 return manager.check(authentication, new RequestAuthorizationContext(request.getRequest(), matchResult.getVariables()));
             }
         }
-        return DENY;
+        return ACCESS;
     }
 
     @Override
