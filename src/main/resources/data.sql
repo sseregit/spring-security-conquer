@@ -15,11 +15,11 @@ VALUES ('admin', '{bcrypt}$2a$10$ubsYj8kR1q60cFoP/JhGeuvz2q5E3uG4Ig7SMismfySiyVP
 
 INSERT INTO account_roles(account_id, role_id)
 VALUES (1, 1),
-       (1, 2),
-       (1, 3),
-       (1, 4),
+--        (1, 2),
+--        (1, 3),
+--        (1, 4),
        (2, 2),
-       (2, 3),
+--        (2, 3),
        (3, 3),
        (4, 3),
        (4, 4)
