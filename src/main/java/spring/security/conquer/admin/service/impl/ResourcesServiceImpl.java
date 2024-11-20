@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import spring.security.conquer.admin.repository.ResourcesRepository;
 import spring.security.conquer.admin.service.ResourcesService;
 import spring.security.conquer.domain.entity.Resources;
+import spring.security.conquer.security.manager.CustomDynamicAuthorizationManager;
 
 import java.util.List;
 
@@ -15,9 +16,11 @@ import java.util.List;
 public class ResourcesServiceImpl implements ResourcesService {
 
     private final ResourcesRepository resourcesRepository;
+    private final CustomDynamicAuthorizationManager customDynamicAuthorizationManager;
 
-    public ResourcesServiceImpl(ResourcesRepository resourcesRepository) {
+    public ResourcesServiceImpl(ResourcesRepository resourcesRepository, CustomDynamicAuthorizationManager customDynamicAuthorizationManager) {
         this.resourcesRepository = resourcesRepository;
+        this.customDynamicAuthorizationManager = customDynamicAuthorizationManager;
     }
 
     @Override
@@ -36,11 +39,13 @@ public class ResourcesServiceImpl implements ResourcesService {
     @Transactional
     public void createResources(Resources resources) {
         resourcesRepository.save(resources);
+        customDynamicAuthorizationManager.reload();
     }
 
     @Override
     @Transactional
     public void deleteResources(Long id) {
         resourcesRepository.deleteById(id);
+        customDynamicAuthorizationManager.reload();
     }
 }

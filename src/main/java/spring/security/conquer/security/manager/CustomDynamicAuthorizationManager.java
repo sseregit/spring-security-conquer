@@ -28,6 +28,7 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
     private final HandlerMappingIntrospector handlerMappingIntrospector;
     private final ResourcesRepository resourcesRepository;
     List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings;
+    DynamicAuthorizationService dynamicAuthorizationService;
 
     public CustomDynamicAuthorizationManager(HandlerMappingIntrospector handlerMappingIntrospector, ResourcesRepository resourcesRepository) {
         this.handlerMappingIntrospector = handlerMappingIntrospector;
@@ -36,15 +37,19 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
 
     @EventListener(ApplicationReadyEvent.class)
     public void mappings() {
-        DynamicAuthorizationService dynamicAuthorizationService = new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
+        dynamicAuthorizationService = new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
 
+        setMapping();
+
+    }
+
+    private void setMapping() {
         mappings = dynamicAuthorizationService.getUrlRoleMappings()
                 .entrySet().stream()
                 .map(entry -> new RequestMatcherEntry<>(
                         new MvcRequestMatcher(handlerMappingIntrospector, entry.getKey()),
                         customAuthorizationManager(entry.getValue())))
                 .collect(Collectors.toList());
-
     }
 
     private AuthorizationManager<RequestAuthorizationContext> customAuthorizationManager(String role) {
@@ -78,5 +83,10 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
     @Override
     public void verify(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
         AuthorizationManager.super.verify(authentication, object);
+    }
+
+    public synchronized void reload() {
+        mappings.clear();
+        setMapping();
     }
 }
